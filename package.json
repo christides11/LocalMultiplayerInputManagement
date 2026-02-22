@@ -4,6 +4,13 @@
 	"displayName": "Local Multiplayer Input Management",
 	"description": "Scripts for handling input management.",
 	"unity": "6000.3",
+	"samples": [
+		{
+		  "displayName": "Input System",
+		  "description": "Setup for using Unity's Input System.",
+		  "path": "Samples~/InputSystem"
+		}
+	],
 	"author": {
 		"name": "ChrisTides",
 		"url": ""
