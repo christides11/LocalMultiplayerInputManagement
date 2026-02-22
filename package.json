@@ -1,7 +1,7 @@
 {
-  "name": "com.christides.menunav",
+  "name": "com.christides.lmpinputmanagement",
   "version": "1.0.0",
-  "displayName": "MenuNav",
-  "description": "Scripts for handling menu navigation.",
+  "displayName": "Local Multiplayer Input Management",
+  "description": "Scripts for handling input management.",
   "unity": "6000.3"
 }
