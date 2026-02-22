@@ -1,6 +1,6 @@
 {
   "name": "com.christides.lmpinputmanagement",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Local Multiplayer Input Management",
   "description": "Scripts for handling input management.",
   "unity": "6000.3"
