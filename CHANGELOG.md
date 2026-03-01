@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v1.0.2...v1.1.0) (2026-03-01)
+
+
+### Features
+
+* Add device reassignment on reconnect for UIM ([cb279bf](https://github.com/christides11/LocalMultiplayerInputManagement/commit/cb279bf02b0f01ee6f37c7b386d117061f4f0810))
+
 ## [1.0.2](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v1.0.1...v1.0.2) (2026-02-22)
 
 
