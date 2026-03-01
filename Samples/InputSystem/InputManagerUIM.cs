@@ -12,7 +12,7 @@ namespace CT.LocalInputManagement
             if (!base.Initialize()) return false;
             var systemPlayer = GetSystemPlayer() as InputPlayerManagerUIM;
             systemPlayer.ActivateInput();
-            //systemPlayer.ActivateUIHandling();
+            ReturnAllDevicesToSystem();
             InputSystem.onDeviceChange += onInputDeviceChange;
             return true;
         }
@@ -58,9 +58,10 @@ namespace CT.LocalInputManagement
             {
                 playerInputManagers[i].RemoveAllDevices();
             }
-            
-            //playerInputManagers[0].AssignInputDevices(Gamepad.all.ToArray());
-            //playerInputManagers[0].AssignKeyboardAndMouse();
+
+            var inputPlayer = playerInputManagers[0] as InputPlayerManagerUIM;
+            inputPlayer.AssignInputDevices(Gamepad.all.ToArray());
+            inputPlayer.AssignKeyboardAndMouse();
         }
 
         public override void ReturnPlayerDevicesToSystem(int player)
@@ -75,29 +76,36 @@ namespace CT.LocalInputManagement
         
         public void RemoveDeviceFromPlayers(InputDevice device)
         {
-            /*
             for (int i = 1; i < playerInputManagers.Count; i++)
             {
-                playerInputManagers[i].RemoveDevice(device);
+                (playerInputManagers[i] as InputPlayerManagerUIM).RemoveDevice(device);
             }
-            playerInputManagers[0].AssignInputDevice(device);*/
+            (playerInputManagers[0] as InputPlayerManagerUIM).AssignInputDevice(device);
         }
         
         public void AssignDevicesToPlayer(InputDevice[] devices, int player)
         {
-            /*
             if (player == 0) return;
-            playerInputManagers[0].RemoveDevices(devices);
-            playerInputManagers[player].AssignInputDevices(devices);*/
+            (playerInputManagers[0] as InputPlayerManagerUIM).RemoveDevices(devices);
+            (playerInputManagers[player] as InputPlayerManagerUIM).AssignInputDevices(devices);
         }
 
         public override void TransferAllDevicesFromSystemTo(int player)
         {
-            /*
             if (player == 0) return;
-            var aDevices = playerInputManagers[0].assignedDevices.ToArray();
-            playerInputManagers[0].RemoveDevices(aDevices);
-            playerInputManagers[player].AssignInputDevices(aDevices);*/
+            var aDevices = (playerInputManagers[0] as InputPlayerManagerUIM).assignedDevices.ToArray();
+            (playerInputManagers[0] as InputPlayerManagerUIM).RemoveDevices(aDevices);
+            (playerInputManagers[player] as InputPlayerManagerUIM).AssignInputDevices(aDevices);
+        }
+
+        public virtual int IsDeviceAssignedToAnyPlayer(InputDevice device)
+        {
+            for (int i = 0; i < playerInputManagers.Count; i++)
+            {
+                var pim = playerInputManagers[i] as InputPlayerManagerUIM;
+                if (pim.DeviceIsAssigned(device)) return i;
+            }
+            return -1;
         }
 
         protected virtual void onInputDeviceChange(InputDevice device, InputDeviceChange change)
@@ -107,17 +115,13 @@ namespace CT.LocalInputManagement
             switch (change)
             {
                 case InputDeviceChange.Added:
-                    Debug.Log($"Device added {device}. Assigning to {autoAssignDevicesTo}.", playerInputManagers[autoAssignDevicesTo]);
-                    (playerInputManagers[0] as InputPlayerManagerUIM).RemoveDevice(device);
-                    (playerInputManagers[autoAssignDevicesTo] as InputPlayerManagerUIM).AssignInputDevice(device);
-                    break;
-                case InputDeviceChange.Removed:
-                    Debug.Log("Device removed: " + device);
-                    (playerInputManagers[autoAssignDevicesTo] as InputPlayerManagerUIM).RemoveDevice(device);
-                    RemoveDeviceFromPlayers(device);
-                    break;
-                case InputDeviceChange.ConfigurationChanged:
-                    Debug.Log("Device configuration changed: " + device);
+                    var devicePlayer = IsDeviceAssignedToAnyPlayer(device);
+                    if (devicePlayer == -1)
+                    {
+                        Debug.Log($"Device added {device}. Assigning to Player Index {autoAssignDevicesTo}.",
+                            playerInputManagers[autoAssignDevicesTo]);
+                        (playerInputManagers[autoAssignDevicesTo] as InputPlayerManagerUIM).AssignInputDevice(device);
+                    }
                     break;
             }
         }

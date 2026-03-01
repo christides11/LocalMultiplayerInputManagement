@@ -229,6 +229,11 @@ namespace CT.LocalInputManagement
             currentDevices = dvs.ToList();
             onCurrentDeviceChanged?.Invoke();
         }
+
+        public virtual bool DeviceIsAssigned(InputDevice device)
+        {
+            return assignedDevices.Contains(device);
+        }
         
         public virtual string GetBindingOverridesAsJson()
         {

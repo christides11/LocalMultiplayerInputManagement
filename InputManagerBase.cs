@@ -55,7 +55,6 @@ namespace CT.LocalInputManagement
                 }
                 instance = this;
             }
-            initialized = false;
             playerInputManagers = new(4);
             InitializeSystemPlayer();
             initialized = true;
