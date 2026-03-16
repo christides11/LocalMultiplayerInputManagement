@@ -10,10 +10,32 @@ using UnityEngine.InputSystem.Users;
 
 namespace CT.LocalInputManagement
 {
-    public partial class InputPlayerManagerUIM : InputPlayerManagerBase
+    public partial class InputPlayerManager : MonoBehaviour
     {
-        public delegate void DelegateWhenControlSchemeChanged(InputPlayerManagerUIM inputPlayer,
-            InputManagerBase.ControlSchemeType controlScheme);
+        public enum NavigationType
+        {
+            Controller_Or_Keyboard,
+            Mouse
+        }
+
+        public NavigationType lastNavigationType = NavigationType.Controller_Or_Keyboard;
+
+        public delegate void DelegateNavigationStyleChange(InputPlayerManager inputPlayer,
+            NavigationType navigationType);
+
+        public DelegateNavigationStyleChange onNavigationStyleChanged;
+
+        public delegate void DelegateDeviceChanged();
+
+        public DelegateDeviceChanged onCurrentDeviceChanged;
+
+        public int Id { get; protected set; } = 0;
+
+        public bool autoSwitchControlSchemes = true;
+        public int navigationStyleUpdateRate = 10;
+
+        public delegate void DelegateWhenControlSchemeChanged(InputPlayerManager inputPlayer,
+            InputManager.ControlSchemeType controlScheme);
 
         public DelegateWhenControlSchemeChanged onControlSchemeChanged;
 
@@ -28,13 +50,12 @@ namespace CT.LocalInputManagement
         public MultiplayerEventSystem mpEventSystem = null;
         public InputSystemUIInputModule uiInputModule = null;
 
-        public override void Initialize(int id)
+        public virtual void Initialize(int id)
         {
-            base.Initialize(id);
+            Id = id;
             if (playerInput == null) playerInput = gameObject.AddComponent<PlayerInput>();
             inputActions?.Dispose();
             inputActions = new InputActions();
-            playerInput.defaultActionMap = inputActions.UI.Get().name;
             playerInput.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
             playerInput.neverAutoSwitchControlSchemes = true;
             playerInput.actions = inputActions.asset;
@@ -50,27 +71,27 @@ namespace CT.LocalInputManagement
             InputUser.onUnpairedDeviceUsed += WhenUnpairedDeviceUsed;
         }
 
-        public override void Reinitalize()
+        public virtual void Reinitalize()
         {
             if (playerInput.user.valid) return;
             playerInput.actions = null;
             playerInput.actions = inputActions.asset;
         }
 
-        public override void Teardown()
+        public virtual void Teardown()
         {
-            base.Teardown();
+            DeactivateInput();
             playerInput.user.UnpairDevicesAndRemoveUser();
         }
 
-        protected override void OnDestroy()
+        protected virtual void OnDestroy()
         {
             InputUser.onUnpairedDeviceUsed -= WhenUnpairedDeviceUsed;
             InputUser.onChange -= onInputDeviceChange;
             --InputUser.listenForUnpairedDeviceActivity;
         }
 
-        public override void Vibrate(float vibrateTime)
+        public virtual void Vibrate(float vibrateTime)
         {
             foreach (var id in currentDevices)
             {
@@ -78,7 +99,7 @@ namespace CT.LocalInputManagement
             }
         }
 
-        public override void SetUIRoot(GameObject uiRoot)
+        public virtual void SetUIRoot(GameObject uiRoot)
         {
             mpEventSystem.playerRoot = uiRoot;
         }
@@ -88,13 +109,13 @@ namespace CT.LocalInputManagement
             return eventData.currentInputModule == uiInputModule;
         }
 
-        public override void RemoveAllDevices(bool updateDevices = true)
+        public virtual void RemoveAllDevices(bool updateDevices = true)
         {
             assignedDevices.Clear();
             if (updateDevices) UpdateDevices();
         }
 
-        public override bool UpdateDevices()
+        public virtual bool UpdateDevices()
         {
             inputActions.devices = assignedDevices.ToArray();
             for (int i = currentDevices.Count - 1; i >= 0; i--)
@@ -111,27 +132,32 @@ namespace CT.LocalInputManagement
             return true;
         }
 
-        public override void ActivateInput()
+        public virtual void ActivateInput()
         {
             playerInput.ActivateInput();
         }
 
-        public override void DeactivateInput()
+        public virtual void DeactivateInput()
         {
             playerInput.DeactivateInput();
         }
-        
+
+        public virtual void SetID(int id)
+        {
+            Id = id;
+        }
+
         public virtual void RemoveDevice(InputDevice inputDevice, bool updateDevices = true)
         {
             playerInput.user.UnpairDevice(inputDevice);
             assignedDevices.Remove(inputDevice);
-            if(updateDevices) UpdateDevices();
+            if (updateDevices) UpdateDevices();
         }
 
         public virtual void RemoveDevices(InputDevice[] inputDevices, bool updateDevices = true)
         {
             if (assignedDevices.Count == 0) return;
-            
+
             foreach (var inputDevice in inputDevices)
             {
                 if (inputDevice == Mouse.current || inputDevice == Keyboard.current)
@@ -147,16 +173,16 @@ namespace CT.LocalInputManagement
                 assignedDevices.Remove(inputDevice);
             }
 
-            if(updateDevices) UpdateDevices();
+            if (updateDevices) UpdateDevices();
         }
 
         public virtual void AssignKeyboardAndMouse(bool updateDevices = true)
         {
             assignedDevices.Add(Keyboard.current);
             assignedDevices.Add(Mouse.current);
-            if(updateDevices) UpdateDevices();
+            if (updateDevices) UpdateDevices();
         }
-        
+
         public virtual void AssignInputDevice(InputDevice inputDevice, bool updateDevices = true)
         {
             assignedDevices.Add(inputDevice);
@@ -182,7 +208,7 @@ namespace CT.LocalInputManagement
 
             if (updateDevices) UpdateDevices();
         }
-        
+
         public virtual void SwitchToDevice(InputDevice device)
         {
             if (device == null)
@@ -208,10 +234,11 @@ namespace CT.LocalInputManagement
                 Debug.LogError("Exception throw while switching control scheme.", gameObject);
                 Debug.LogException(e);
             }
+
             currentDevices = dvs.ToList();
             onCurrentDeviceChanged?.Invoke();
         }
-        
+
         protected virtual void WhenUnpairedDeviceUsed(InputControl arg1, InputEventPtr arg2)
         {
             if (!autoSwitchControlSchemes || !assignedDevices.Contains(arg1.device)) return;
@@ -234,7 +261,7 @@ namespace CT.LocalInputManagement
         {
             return assignedDevices.Contains(device);
         }
-        
+
         public virtual string GetBindingOverridesAsJson()
         {
             return inputActions.SaveBindingOverridesAsJson();
@@ -252,7 +279,6 @@ namespace CT.LocalInputManagement
 
         protected virtual void onInputDeviceChange(InputUser user, InputUserChange change, InputDevice device)
         {
-            
         }
     }
 }

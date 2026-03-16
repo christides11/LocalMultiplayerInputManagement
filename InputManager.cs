@@ -1,12 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace CT.LocalInputManagement
 {
-    public partial class InputManagerBase : MonoBehaviour
+    public partial class InputManager : MonoBehaviour
     {
         public enum ControlSchemeType
         {
@@ -14,10 +16,10 @@ namespace CT.LocalInputManagement
             GAMEPAD
         }
         
-        public List<InputPlayerManagerBase> playerInputManagers = new();
+        public List<InputPlayerManager> playerInputManagers = new();
         public int autoAssignDevicesTo = 0;
 
-        public static InputManagerBase instance;
+        public static InputManager instance;
         public static bool initialized = false;
 
         public bool initializeOnAwake = true;
@@ -33,7 +35,7 @@ namespace CT.LocalInputManagement
         }
         
 #if UNITY_EDITOR
-        private static void OnExitPlayMode(PlayModeStateChange state)
+        public static void OnExitPlayMode(PlayModeStateChange state)
         {
             if(state == PlayModeStateChange.ExitingPlayMode)
             {
@@ -58,19 +60,23 @@ namespace CT.LocalInputManagement
             playerInputManagers = new(4);
             InitializeSystemPlayer();
             initialized = true;
+            var systemPlayer = GetSystemPlayer();
+            systemPlayer.ActivateInput();
+            ReturnAllDevicesToSystem();
+            InputSystem.onDeviceChange += onInputDeviceChange;
             return true;
         }
 
         protected virtual void OnDestroy()
         {
-            
+            InputSystem.onDeviceChange -= onInputDeviceChange;
         }
         
         public virtual void InitializeSystemPlayer()
         {
             GameObject go = new GameObject("System Player");
             go.transform.SetParent(transform, false);
-            var ipm = go.AddComponent<InputPlayerManagerBase>();
+            var ipm = go.AddComponent<InputPlayerManager>();
             ipm.Initialize(0);
 
             playerInputManagers.Add(ipm);
@@ -80,7 +86,7 @@ namespace CT.LocalInputManagement
         {
             GameObject go = new GameObject($"Player {playerInputManagers.Count}");
             go.transform.SetParent(transform, false);
-            var ipm = go.AddComponent<InputPlayerManagerBase>();
+            var ipm = go.AddComponent<InputPlayerManager>();
             
             playerInputManagers.Add(ipm);
             ipm.Initialize(playerInputManagers.Count-1);
@@ -123,20 +129,20 @@ namespace CT.LocalInputManagement
             }
         }
 
-        public virtual InputPlayerManagerBase GetSystemPlayer()
+        public virtual InputPlayerManager GetSystemPlayer()
         {
             return playerInputManagers[0];
         }
         
-        public virtual InputPlayerManagerBase GetPlayer(int playerId)
+        public virtual InputPlayerManager GetPlayer(int playerId)
         {
             if (playerId == 0 || playerId >= playerInputManagers.Count) return null;
             return playerInputManagers[playerId];
         }
 
-        public virtual List<InputPlayerManagerBase> GetPlayers()
+        public virtual List<InputPlayerManager> GetPlayers()
         {
-            var l = new List<InputPlayerManagerBase>();
+            var l = new List<InputPlayerManager>();
             for (int i = 1; i < playerInputManagers.Count; i++)
             {
                 l.Add(playerInputManagers[i]);
@@ -150,11 +156,36 @@ namespace CT.LocalInputManagement
             {
                 playerInputManagers[i].RemoveAllDevices();
             }
+
+            var inputPlayer = playerInputManagers[0] as InputPlayerManager;
+            inputPlayer.AssignInputDevices(Gamepad.all.ToArray());
+            inputPlayer.AssignKeyboardAndMouse();
         }
 
         public virtual void ReturnPlayerDevicesToSystem(int player)
         {
-            
+            if (player == 0) return;
+            var playerManager = playerInputManagers[player] as InputPlayerManager;
+            var systemPlayer = playerInputManagers[0] as InputPlayerManager;
+            var dList = playerManager.assignedDevices.ToArray();
+            playerManager.RemoveAllDevices();
+            systemPlayer.AssignInputDevices(dList);
+        }
+        
+        public void RemoveDeviceFromPlayers(InputDevice device)
+        {
+            for (int i = 1; i < playerInputManagers.Count; i++)
+            {
+                (playerInputManagers[i] as InputPlayerManager).RemoveDevice(device);
+            }
+            (playerInputManagers[0] as InputPlayerManager).AssignInputDevice(device);
+        }
+        
+        public void AssignDevicesToPlayer(InputDevice[] devices, int player)
+        {
+            if (player == 0) return;
+            (playerInputManagers[0] as InputPlayerManager).RemoveDevices(devices);
+            (playerInputManagers[player] as InputPlayerManager).AssignInputDevices(devices);
         }
         
         public virtual void AssignAllDevicesToPlayer(int player)
@@ -165,7 +196,50 @@ namespace CT.LocalInputManagement
 
         public virtual void TransferAllDevicesFromSystemTo(int player)
         {
+            if (player == 0) return;
+            var aDevices = (playerInputManagers[0] as InputPlayerManager).assignedDevices.ToArray();
+            (playerInputManagers[0] as InputPlayerManager).RemoveDevices(aDevices);
+            (playerInputManagers[player] as InputPlayerManager).AssignInputDevices(aDevices);
+        }
+        
+        public virtual int IsDeviceAssignedToAnyPlayer(InputDevice device)
+        {
+            for (int i = 0; i < playerInputManagers.Count; i++)
+            {
+                var pim = playerInputManagers[i];
+                if (pim.DeviceIsAssigned(device)) return i;
+            }
+            return -1;
+        }
+
+        protected virtual void onInputDeviceChange(InputDevice device, InputDeviceChange change)
+        {
+            if (autoAssignDevicesTo >= playerInputManagers.Count) autoAssignDevicesTo = 0;
             
+            switch (change)
+            {
+                case InputDeviceChange.Added:
+                    var devicePlayer = IsDeviceAssignedToAnyPlayer(device);
+                    if (devicePlayer == -1)
+                    {
+                        Debug.Log($"Device added {device}. Assigning to Player Index {autoAssignDevicesTo}.",
+                            playerInputManagers[autoAssignDevicesTo]);
+                        (playerInputManagers[autoAssignDevicesTo]).AssignInputDevice(device);
+                    }
+                    break;
+            }
+        }
+        
+        public virtual void SetPlayersBasedOnDeviceLists(List<List<InputDevice>> players)
+        {
+            if (players.Count == 0) return;
+            ReturnAllDevicesToSystem();
+            SetPlayerCount(players.Count);
+            
+            for (int i = 0; i < players.Count; i++)
+            {
+                AssignDevicesToPlayer(players[i].ToArray(), i+1);
+            }
         }
     }
 }
