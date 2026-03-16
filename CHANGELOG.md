@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v1.1.0...v2.0.0) (2026-03-16)
+
+
+### Code Refactoring
+
+* Change to only supporting Input Manager ([0b27445](https://github.com/christides11/LocalMultiplayerInputManagement/commit/0b27445fe401dfbb715746a907f2ce34526a9b3c))
+
+
+### BREAKING CHANGES
+
+* Only support Unity's Input Manager instead of being generic.
+
 # [1.1.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v1.0.2...v1.1.0) (2026-03-01)
 
 
