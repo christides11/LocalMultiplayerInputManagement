@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.0.0...v2.1.0) (2026-04-11)
+
+
+### Features
+
+* Method to set auto assigned device player ([2495bb0](https://github.com/christides11/LocalMultiplayerInputManagement/commit/2495bb047f2c9c525460c2548fa8e35a7e885a61))
+
 # [2.0.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v1.1.0...v2.0.0) (2026-03-16)
 
 
