@@ -212,6 +212,11 @@ namespace CT.LocalInputManagement
             return -1;
         }
 
+        public void SetAutoAssignDevicesPlayer(int playerIndex)
+        {
+            autoAssignDevicesTo = playerIndex;
+        }
+        
         protected virtual void onInputDeviceChange(InputDevice device, InputDeviceChange change)
         {
             if (autoAssignDevicesTo >= playerInputManagers.Count) autoAssignDevicesTo = 0;
