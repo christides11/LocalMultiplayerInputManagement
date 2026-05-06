@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.1.0...v2.2.0) (2026-05-06)
+
+
+### Features
+
+* InputManager player add/remove events ([f9fdab0](https://github.com/christides11/LocalMultiplayerInputManagement/commit/f9fdab0ec3db18cdfdd484ce2852d21dbc558855))
+
 # [2.1.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.0.0...v2.1.0) (2026-04-11)
 
 
