@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -15,6 +16,9 @@ namespace CT.LocalInputManagement
             KEYBOARD_MOUSE,
             GAMEPAD
         }
+
+        public UnityEvent<InputPlayerManager> onPlayerAdded, onPlayerRemoved = new();
+        public UnityEvent onPlayersChanged = new();
         
         public List<InputPlayerManager> playerInputManagers = new();
         public int autoAssignDevicesTo = 0;
@@ -80,9 +84,10 @@ namespace CT.LocalInputManagement
             ipm.Initialize(0);
 
             playerInputManagers.Add(ipm);
+            onPlayerAdded?.Invoke(ipm);
         }
         
-        public virtual void AddPlayer()
+        public virtual void AddPlayer(bool callChangedEvent = true)
         {
             GameObject go = new GameObject($"Player {playerInputManagers.Count}");
             go.transform.SetParent(transform, false);
@@ -90,15 +95,23 @@ namespace CT.LocalInputManagement
             
             playerInputManagers.Add(ipm);
             ipm.Initialize(playerInputManagers.Count-1);
+            
+            onPlayerAdded?.Invoke(ipm);
+            if(callChangedEvent) onPlayersChanged?.Invoke();
         }
 
-        public virtual void RemovePlayer(int player)
+        public virtual void RemovePlayer(int player, bool callChangedEvent = true)
         {
             if (player == 0) return;
-            playerInputManagers[player].Teardown();
-            GameObject.Destroy(playerInputManagers[player].gameObject);
-            playerInputManagers.RemoveAt(player);
+            var playerToRemove = playerInputManagers[player];
+            playerToRemove.Teardown();
+            playerInputManagers.Remove(playerToRemove);
             RefreshPlayerIDs();
+            
+            onPlayerRemoved?.Invoke(playerToRemove);
+            GameObject.Destroy(playerToRemove.gameObject);
+            
+            if(callChangedEvent) onPlayersChanged?.Invoke();
         }
 
         public virtual void SetPlayerCount(int count)
@@ -106,13 +119,14 @@ namespace CT.LocalInputManagement
             count += 1;
             while (playerInputManagers.Count < count)
             {
-                AddPlayer();
+                AddPlayer(callChangedEvent: false);
             }
 
             while (playerInputManagers.Count > count)
             {
-                RemovePlayer(playerInputManagers.Count-1);
+                RemovePlayer(playerInputManagers.Count-1, callChangedEvent: false);
             }
+            onPlayersChanged?.Invoke();
         }
 
         public virtual int GetPlayerCount()
