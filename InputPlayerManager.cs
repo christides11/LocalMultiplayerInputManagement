@@ -35,7 +35,7 @@ namespace CT.LocalInputManagement
         public int navigationStyleUpdateRate = 10;
 
         public delegate void DelegateWhenControlSchemeChanged(InputPlayerManager inputPlayer,
-            InputManager.ControlSchemeType controlScheme);
+            ControlSchemeType controlScheme);
 
         public DelegateWhenControlSchemeChanged onControlSchemeChanged;
 

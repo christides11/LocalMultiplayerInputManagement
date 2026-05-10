@@ -11,12 +11,6 @@ namespace CT.LocalInputManagement
 {
     public partial class InputManager : MonoBehaviour
     {
-        public enum ControlSchemeType
-        {
-            KEYBOARD_MOUSE,
-            GAMEPAD
-        }
-
         public UnityEvent<InputPlayerManager> onPlayerAdded, onPlayerRemoved = new();
         public UnityEvent onPlayersChanged = new();
         
@@ -29,6 +23,9 @@ namespace CT.LocalInputManagement
         public bool initializeOnAwake = true;
         public bool createStaticInstance = true;
 
+        [Header("Debugging")]
+        public bool debug;
+        
         public virtual void Awake()
         {
 #if UNITY_EDITOR
@@ -150,7 +147,7 @@ namespace CT.LocalInputManagement
         
         public virtual InputPlayerManager GetPlayer(int playerId)
         {
-            if (playerId == 0 || playerId >= playerInputManagers.Count) return null;
+            if (playerId < 0 || playerId >= playerInputManagers.Count) return null;
             return playerInputManagers[playerId];
         }
 
@@ -171,7 +168,7 @@ namespace CT.LocalInputManagement
                 playerInputManagers[i].RemoveAllDevices();
             }
 
-            var inputPlayer = playerInputManagers[0] as InputPlayerManager;
+            var inputPlayer = playerInputManagers[0];
             inputPlayer.AssignInputDevices(Gamepad.all.ToArray());
             inputPlayer.AssignKeyboardAndMouse();
         }
@@ -179,8 +176,8 @@ namespace CT.LocalInputManagement
         public virtual void ReturnPlayerDevicesToSystem(int player)
         {
             if (player == 0) return;
-            var playerManager = playerInputManagers[player] as InputPlayerManager;
-            var systemPlayer = playerInputManagers[0] as InputPlayerManager;
+            var playerManager = playerInputManagers[player];
+            var systemPlayer = playerInputManagers[0];
             var dList = playerManager.assignedDevices.ToArray();
             playerManager.RemoveAllDevices();
             systemPlayer.AssignInputDevices(dList);
@@ -190,16 +187,16 @@ namespace CT.LocalInputManagement
         {
             for (int i = 1; i < playerInputManagers.Count; i++)
             {
-                (playerInputManagers[i] as InputPlayerManager).RemoveDevice(device);
+                playerInputManagers[i].RemoveDevice(device);
             }
-            (playerInputManagers[0] as InputPlayerManager).AssignInputDevice(device);
+            playerInputManagers[0].AssignInputDevice(device);
         }
         
         public void AssignDevicesToPlayer(InputDevice[] devices, int player)
         {
             if (player == 0) return;
-            (playerInputManagers[0] as InputPlayerManager).RemoveDevices(devices);
-            (playerInputManagers[player] as InputPlayerManager).AssignInputDevices(devices);
+            playerInputManagers[0].RemoveDevices(devices);
+            playerInputManagers[player].AssignInputDevices(devices);
         }
         
         public virtual void AssignAllDevicesToPlayer(int player)
@@ -211,9 +208,9 @@ namespace CT.LocalInputManagement
         public virtual void TransferAllDevicesFromSystemTo(int player)
         {
             if (player == 0) return;
-            var aDevices = (playerInputManagers[0] as InputPlayerManager).assignedDevices.ToArray();
-            (playerInputManagers[0] as InputPlayerManager).RemoveDevices(aDevices);
-            (playerInputManagers[player] as InputPlayerManager).AssignInputDevices(aDevices);
+            var aDevices = playerInputManagers[0].assignedDevices.ToArray();
+            playerInputManagers[0].RemoveDevices(aDevices);
+            playerInputManagers[player].AssignInputDevices(aDevices);
         }
         
         public virtual int IsDeviceAssignedToAnyPlayer(InputDevice device)
@@ -238,12 +235,19 @@ namespace CT.LocalInputManagement
             switch (change)
             {
                 case InputDeviceChange.Added:
+                    if(debug) Debug.Log($"Device added {device}");
                     var devicePlayer = IsDeviceAssignedToAnyPlayer(device);
                     if (devicePlayer == -1)
                     {
-                        Debug.Log($"Device added {device}. Assigning to Player Index {autoAssignDevicesTo}.",
+                        if(debug)
+                            Debug.Log($"{device}: Assigning to Player Index {autoAssignDevicesTo}.",
                             playerInputManagers[autoAssignDevicesTo]);
                         (playerInputManagers[autoAssignDevicesTo]).AssignInputDevice(device);
+                    }
+                    else
+                    {
+                        if(debug)
+                            Debug.Log($"{device}: Already assigned to Player Index {devicePlayer}.");
                     }
                     break;
             }
