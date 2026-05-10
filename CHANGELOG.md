@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.0...v2.2.1) (2026-05-10)
+
+
+### Bug Fixes
+
+* Fix device add logging, cleanup ([2aca7d3](https://github.com/christides11/LocalMultiplayerInputManagement/commit/2aca7d3c9387a192af4909cf625fda25bf6e09de))
+
 # [2.2.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.1.0...v2.2.0) (2026-05-06)
 
 
