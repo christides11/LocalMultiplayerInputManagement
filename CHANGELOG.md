@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.1...v2.2.2) (2026-06-30)
+
+
+### Bug Fixes
+
+* Remove sample from package.json ([7af6b8f](https://github.com/christides11/LocalMultiplayerInputManagement/commit/7af6b8faee07122f6eb5e5aed680dc49d29f9be9))
+
 ## [2.2.1](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.0...v2.2.1) (2026-05-10)
 
 
