@@ -3,9 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace CT.LocalInputManagement
 {
@@ -19,6 +16,7 @@ namespace CT.LocalInputManagement
 
         public static InputManager instance;
         public static bool initialized = false;
+        private static int idCounter = 1;
 
         public bool initializeOnAwake = true;
         public bool createStaticInstance = true;
@@ -28,24 +26,16 @@ namespace CT.LocalInputManagement
         
         public virtual void Awake()
         {
-#if UNITY_EDITOR
-            EditorApplication.playModeStateChanged += OnExitPlayMode;
-#endif
-            
             if(initializeOnAwake) Initialize();
         }
         
-#if UNITY_EDITOR
-        public static void OnExitPlayMode(PlayModeStateChange state)
+        [OnExitingPlayMode]
+        public static void OnExitPlayMode()
         {
-            if(state == PlayModeStateChange.ExitingPlayMode)
-            {
-                EditorApplication.playModeStateChanged -= OnExitPlayMode;
-                instance = null;
-                initialized = false;
-            }
+            instance = null;
+            initialized = false;
+            idCounter = 1;
         }
-#endif
 
         public virtual bool Initialize()
         {
@@ -91,7 +81,8 @@ namespace CT.LocalInputManagement
             var ipm = go.AddComponent<InputPlayerManager>();
             
             playerInputManagers.Add(ipm);
-            ipm.Initialize(playerInputManagers.Count-1);
+            ipm.Initialize(idCounter);
+            idCounter++;
             
             onPlayerAdded?.Invoke(ipm);
             if(callChangedEvent) onPlayersChanged?.Invoke();
@@ -103,7 +94,6 @@ namespace CT.LocalInputManagement
             var playerToRemove = playerInputManagers[player];
             playerToRemove.Teardown();
             playerInputManagers.Remove(playerToRemove);
-            RefreshPlayerIDs();
             
             onPlayerRemoved?.Invoke(playerToRemove);
             GameObject.Destroy(playerToRemove.gameObject);
@@ -129,15 +119,6 @@ namespace CT.LocalInputManagement
         public virtual int GetPlayerCount()
         {
             return playerInputManagers.Count - 1;
-        }
-        
-        protected virtual void RefreshPlayerIDs()
-        {
-            for (int i = 0; i < playerInputManagers.Count; i++)
-            {
-                if (i == 0) continue;
-                playerInputManagers[i].SetID(i);
-            }
         }
 
         public virtual InputPlayerManager GetSystemPlayer()
@@ -221,6 +202,16 @@ namespace CT.LocalInputManagement
                 if (pim.DeviceIsAssigned(device)) return i;
             }
             return -1;
+        }
+
+        public virtual InputPlayerManager GetPlayerWithDevice(InputDevice device)
+        {
+            for (int i = 0; i < playerInputManagers.Count; i++)
+            {
+                var pim = playerInputManagers[i];
+                if (pim.DeviceIsAssigned(device)) return pim;
+            }
+            return null;
         }
 
         public void SetAutoAssignDevicesPlayer(int playerIndex)

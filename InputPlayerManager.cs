@@ -29,7 +29,7 @@ namespace CT.LocalInputManagement
 
         public DelegateDeviceChanged onCurrentDeviceChanged;
 
-        public int Id { get; protected set; } = 0;
+        public int Id { get; protected set; } = -1;
 
         public bool autoSwitchControlSchemes = true;
         public int navigationStyleUpdateRate = 10;
