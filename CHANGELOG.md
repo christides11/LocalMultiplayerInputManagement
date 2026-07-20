@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.2...v2.3.0) (2026-07-20)
+
+
+### Features
+
+* GetPlayerWithDevice, stable player IDs ([483620f](https://github.com/christides11/LocalMultiplayerInputManagement/commit/483620fd8323d8c1a6832a0bac648e4ab6f3523c))
+
 ## [2.2.2](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.1...v2.2.2) (2026-06-30)
 
 
