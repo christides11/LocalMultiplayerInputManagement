@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.3.0...v2.4.0) (2026-07-24)
+
+
+### Features
+
+* Return created player manager in AddPlayer ([6a91249](https://github.com/christides11/LocalMultiplayerInputManagement/commit/6a912494beb91b8477c18484e901ebb1dd9ff1c7))
+
 # [2.3.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.2.2...v2.3.0) (2026-07-20)
 
 
