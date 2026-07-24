@@ -8,6 +8,8 @@ namespace CT.LocalInputManagement
 {
     public partial class InputManager : MonoBehaviour
     {
+        public static readonly int SystemPlayerID = 0;
+        
         public UnityEvent<InputPlayerManager> onPlayerAdded, onPlayerRemoved = new();
         public UnityEvent onPlayersChanged = new();
         
@@ -68,13 +70,13 @@ namespace CT.LocalInputManagement
             GameObject go = new GameObject("System Player");
             go.transform.SetParent(transform, false);
             var ipm = go.AddComponent<InputPlayerManager>();
-            ipm.Initialize(0);
+            ipm.Initialize(SystemPlayerID);
 
             playerInputManagers.Add(ipm);
             onPlayerAdded?.Invoke(ipm);
         }
         
-        public virtual void AddPlayer(bool callChangedEvent = true)
+        public virtual InputPlayerManager AddPlayer(bool callChangedEvent = true)
         {
             GameObject go = new GameObject($"Player {playerInputManagers.Count}");
             go.transform.SetParent(transform, false);
@@ -86,6 +88,7 @@ namespace CT.LocalInputManagement
             
             onPlayerAdded?.Invoke(ipm);
             if(callChangedEvent) onPlayersChanged?.Invoke();
+            return ipm;
         }
 
         public virtual void RemovePlayer(int player, bool callChangedEvent = true)
