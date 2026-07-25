@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,7 +14,12 @@ namespace CT.LocalInputManagement
         public UnityEvent<InputPlayerManager> onPlayerAdded, onPlayerRemoved = new();
         public UnityEvent onPlayersChanged = new();
         
-        protected List<InputPlayerManager> playerInputManagers = new();
+        protected readonly List<InputPlayerManager> playerInputManagers = new(4);
+        
+        private ReadOnlyCollection<InputPlayerManager> _playerInputManagers;
+        public IReadOnlyList<InputPlayerManager> PlayerInputManagers =>
+            _playerInputManagers ??= playerInputManagers.AsReadOnly();
+        
         public int autoAssignDevicesTo = 0;
 
         public static InputManager instance;
@@ -50,7 +56,7 @@ namespace CT.LocalInputManagement
                 }
                 instance = this;
             }
-            playerInputManagers = new(4);
+            playerInputManagers.Clear();
             InitializeSystemPlayer();
             initialized = true;
             var systemPlayer = GetSystemPlayer();
@@ -214,7 +220,7 @@ namespace CT.LocalInputManagement
             inputPlayer.AssignInputDevices(aDevices);
         }
         
-        public virtual int IsDeviceAssignedToAnyPlayer(InputDevice device)
+        public virtual int DeviceAssignedToPlayerID(InputDevice device)
         {
             for (int i = 0; i < playerInputManagers.Count; i++)
             {
