@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.4.0...v2.5.0) (2026-07-25)
+
+
+### Features
+
+* Move to using ID instead of player index ([a905fd4](https://github.com/christides11/LocalMultiplayerInputManagement/commit/a905fd4ddfff3280235524a16693dec6c05a33fc))
+
 # [2.4.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.3.0...v2.4.0) (2026-07-24)
 
 
