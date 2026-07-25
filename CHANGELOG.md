@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.5.0...v2.6.0) (2026-07-25)
+
+
+### Features
+
+* readonly list of PlayerInputManagers ([680ad08](https://github.com/christides11/LocalMultiplayerInputManagement/commit/680ad085ea41b2ab643c92afb30c33fd203c0efa))
+
 # [2.5.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.4.0...v2.5.0) (2026-07-25)
 
 
