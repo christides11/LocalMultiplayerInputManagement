@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.6.0...v2.7.0) (2026-07-27)
+
+
+### Features
+
+* Get player index ([93b7868](https://github.com/christides11/LocalMultiplayerInputManagement/commit/93b78688ff66314885f460ab972273c6481acf86))
+
 # [2.6.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.5.0...v2.6.0) (2026-07-25)
 
 
