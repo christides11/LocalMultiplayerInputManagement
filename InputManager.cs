@@ -163,6 +163,21 @@ namespace CT.LocalInputManagement
             }
             return l;
         }
+
+        public virtual int GetPlayerIndex(int PlayerID)
+        {
+            for (int i = 0; i < playerInputManagers.Count; i++)
+            {
+                if (playerInputManagers[i].Id == PlayerID)
+                    return i;
+            }
+            return -1;
+        }
+
+        public virtual int GetPlayerIndex(InputPlayerManager ipm)
+        {
+            return GetPlayerIndex(ipm.Id);
+        }
         
         public virtual void ReturnAllDevicesToSystem()
         {
