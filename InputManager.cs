@@ -24,7 +24,6 @@ namespace CT.LocalInputManagement
 
         public static InputManager instance;
         public static bool initialized = false;
-        protected static int idCounter = 1;
 
         public bool initializeOnAwake = true;
         public bool createStaticInstance = true;
@@ -42,7 +41,6 @@ namespace CT.LocalInputManagement
         {
             instance = null;
             initialized = false;
-            idCounter = 1;
         }
 
         public virtual bool Initialize()
@@ -76,7 +74,7 @@ namespace CT.LocalInputManagement
             GameObject go = new GameObject("System Player");
             go.transform.SetParent(transform, false);
             var ipm = go.AddComponent<InputPlayerManager>();
-            ipm.Initialize(SystemPlayerID);
+            ipm.Initialize(SystemPlayerID, playerInputManagers.Count);
 
             playerInputManagers.Add(ipm);
             onPlayerAdded?.Invoke(ipm);
@@ -84,15 +82,16 @@ namespace CT.LocalInputManagement
         
         public virtual InputPlayerManager AddPlayer(bool callChangedEvent = true)
         {
-            GameObject go = new GameObject($"Player {playerInputManagers.Count}");
+            var id = GetNextAvailableID();
+            
+            GameObject go = new GameObject($"Player {id}");
             go.transform.SetParent(transform, false);
+            
             var ipm = go.AddComponent<InputPlayerManager>();
-            
+            ipm.Initialize(id, playerInputManagers.Count);
             playerInputManagers.Add(ipm);
-            ipm.Initialize(idCounter);
-            idCounter++;
-            
             onPlayerAdded?.Invoke(ipm);
+            
             if(callChangedEvent) onPlayersChanged?.Invoke();
             return ipm;
         }
@@ -103,11 +102,15 @@ namespace CT.LocalInputManagement
             var playerToRemove = GetPlayer(playerId);
             if (playerToRemove == null) return;
             
+            ReturnPlayerDevicesToSystem(playerId);
+            
             playerToRemove.Teardown();
             playerInputManagers.Remove(playerToRemove);
 
             if (autoAssignDevicesTo == playerToRemove.Id)
                 autoAssignDevicesTo = SystemPlayerID;
+            
+            UpdateIndexes();
             
             onPlayerRemoved?.Invoke(playerToRemove);
             GameObject.Destroy(playerToRemove.gameObject);
@@ -150,6 +153,13 @@ namespace CT.LocalInputManagement
             }
             return null;
         }
+        
+        public virtual InputPlayerManager GetPlayerAtIndex(int playerIndex)
+        {
+            if (playerIndex < 0 || playerIndex >= playerInputManagers.Count)
+                return null;
+            return playerInputManagers[playerIndex];
+        }
 
         public virtual List<InputPlayerManager> GetPlayers(bool includeSystemPlayer = false)
         {
@@ -164,11 +174,11 @@ namespace CT.LocalInputManagement
             return l;
         }
 
-        public virtual int GetPlayerIndex(int PlayerID)
+        public virtual int GetPlayerIndex(int playerID)
         {
             for (int i = 0; i < playerInputManagers.Count; i++)
             {
-                if (playerInputManagers[i].Id == PlayerID)
+                if (playerInputManagers[i].Id == playerID)
                     return i;
             }
             return -1;
@@ -194,15 +204,18 @@ namespace CT.LocalInputManagement
         public virtual void ReturnPlayerDevicesToSystem(int playerId)
         {
             if (playerId == SystemPlayerID) return;
-            var playerManager = GetPlayer(playerId);
+            var player = GetPlayer(playerId);
             var systemPlayer = GetSystemPlayer();
             
-            var dList = playerManager.assignedDevices.ToArray();
-            playerManager.RemoveAllDevices();
+            if (player == null || systemPlayer == null)
+                return;
+            
+            var dList = player.assignedDevices.ToArray();
+            player.RemoveAllDevices();
             systemPlayer.AssignInputDevices(dList);
         }
         
-        public void RemoveDeviceFromPlayers(InputDevice device)
+        public virtual void RemoveDeviceFromPlayers(InputDevice device)
         {
             for (int i = 1; i < playerInputManagers.Count; i++)
             {
@@ -211,7 +224,7 @@ namespace CT.LocalInputManagement
             GetSystemPlayer().AssignInputDevice(device);
         }
         
-        public void AssignDevicesToPlayer(InputDevice[] devices, int playerId)
+        public virtual void AssignDevicesToPlayer(InputDevice[] devices, int playerId)
         {
             if (playerId == 0) return;
             GetSystemPlayer().RemoveDevices(devices);
@@ -273,6 +286,34 @@ namespace CT.LocalInputManagement
         public void SetAutoAssignDevicesPlayer(int playerId)
         {
             autoAssignDevicesTo = playerId;
+        }
+
+        protected virtual int GetNextAvailableID()
+        {
+            var id = 1;
+            while (IsIDInUse(id))
+            {
+                id++;
+            }
+            return id;
+        }
+
+        protected virtual bool IsIDInUse(int id)
+        {
+            foreach (var inputPlayer in playerInputManagers)
+            {
+                if (inputPlayer.Id == id)
+                    return true;
+            }
+            return false;
+        }
+
+        protected virtual void UpdateIndexes()
+        {
+            for (int i = 0; i < playerInputManagers.Count; i++)
+            {
+                playerInputManagers[i].SetIndex(i);
+            }
         }
         
         protected virtual void onInputDeviceChange(InputDevice device, InputDeviceChange change)

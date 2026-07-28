@@ -30,6 +30,7 @@ namespace CT.LocalInputManagement
         public DelegateDeviceChanged onCurrentDeviceChanged;
 
         public int Id { get; protected set; } = -1;
+        public int Index { get; protected set; } = -1;
 
         public bool autoSwitchControlSchemes = true;
         public int navigationStyleUpdateRate = 10;
@@ -50,9 +51,10 @@ namespace CT.LocalInputManagement
         public MultiplayerEventSystem mpEventSystem = null;
         public InputSystemUIInputModule uiInputModule = null;
 
-        public virtual void Initialize(int id)
+        public virtual void Initialize(int id, int index)
         {
             Id = id;
+            Index = index;
             if (playerInput == null) playerInput = gameObject.AddComponent<PlayerInput>();
             inputActions?.Dispose();
             inputActions = new InputActions();
@@ -145,6 +147,11 @@ namespace CT.LocalInputManagement
         public virtual void SetID(int id)
         {
             Id = id;
+        }
+        
+        public virtual void SetIndex(int index)
+        {
+            Index = index;
         }
 
         public virtual void RemoveDevice(InputDevice inputDevice, bool updateDevices = true)
