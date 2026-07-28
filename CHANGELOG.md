@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.7.0...v2.7.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* Reuse IDs instead of always assigning new one ([40bcb7b](https://github.com/christides11/LocalMultiplayerInputManagement/commit/40bcb7b6923b4ce9171638e09ca09b0ed2254ae2))
+
 # [2.7.0](https://github.com/christides11/LocalMultiplayerInputManagement/compare/v2.6.0...v2.7.0) (2026-07-27)
 
 
